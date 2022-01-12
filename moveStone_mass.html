@@ -1,0 +1,207 @@
+<html>
+<title> MOVE STONE</title>
+<meta charset='utf-8'></meta>
+
+<style>
+td{
+border:1px solid black;
+text-align:center;
+border-collapse:collapse;
+}
+
+table{
+border-collapse:collapse;
+}
+</style>
+<body >
+<CANVAS id='main_canvas' width='600' height='600' style='width:600px;height:600px' onmousedown='mousedown()'></CANVAS>
+<br>
+<input type='number' id='level' value='5'><input type=button value='retry' onclick='retry()'><input type=button value='newGame' onclick='InitData();retry();'>
+<div id='clickArea'>
+</div>
+<div id='selArea' style='display:none;left:0px;top:0px;position:absolute;border:1px solid;z-index:2;background-color:rgba(192,192,192,0.95)'>
+</div>
+
+<br>
+ MM Labs. 
+<br>
+<script>
+function GetObj(id)
+{
+	return document.getElementById(id);
+}
+
+function RAND(n)
+{
+	return Math.floor(Math.random()*n);
+}
+var cObj=GetObj('main_canvas');
+var ctx=cObj.getContext('2d');
+var tObj=GetObj('selArea');
+tObj.style.left=cObj.offsetLeft;
+tObj.style.top=cObj.offsetLeft;
+tObj.style.width=cObj.offsetWidth;
+tObj.style.height=cObj.offsetHeight;
+
+var width=600;
+var height=600;
+
+var c_data=[ //x,y,xspeed,yspeed, type, weight
+	[0.1, 0.5, 5, 0, 0, 10],
+	[0.5, 0.1, 0, 6, 0, 8],
+];
+
+var m_data=[ //x,y, type, weight
+	[0.3, 0.2, 0, 10],
+	[0.5, 0.8, 0, 10],
+	[0.8, 0.6, 1, 20],
+];
+
+
+var orgData=[];
+
+function getSpliceNo(vO, v1)
+{
+	var ret=[];
+	var r1=vO+v1;
+	if(r1<10)
+		ret.push(r1);
+	r1=vO-v1;
+	if(r1<0)
+		r1 *= -1;
+	ret.push(r1);
+	return ret[RAND(ret.length)];
+}
+
+function changeCanvasSize(obj,ctx,w,h)
+{
+	obj.style.width=w;
+	obj.style.height=h;
+	ctx.canvas.width=w;
+	ctx.canvas.height=h;
+}
+changeCanvasSize(GetObj('main_canvas'), ctx, width,height);
+
+function drawC(c)
+{
+	var x=c[0]*width;
+	var y=c[1]*height;
+	
+	if(c[2]==0)
+	{
+		ctx.fillStyle='red';
+	}
+	else
+	{
+		ctx.fillStyle='blue';
+	}
+	
+	ctx.beginPath();
+	ctx.arc(x, y, c[5], 0, Math.PI*2);
+	ctx.stroke();
+	ctx.fill();
+}
+
+function drawM(c)
+{
+	var x=c[0]*width;
+	var y=c[1]*height;
+	
+	if(c[2]==0)
+	{
+		ctx.fillStyle='red';
+	}
+	else
+	{
+		ctx.fillStyle='blue';
+	}
+	
+	ctx.beginPath();
+	ctx.arc(x, y, c[3], 0, Math.PI*2) ;
+	ctx.stroke();
+	ctx.fill();
+	
+	ctx.beginPath();
+	ctx.arc(x, y, c[3]*2, 0, Math.PI*2);
+	ctx.stroke();
+}
+
+function GetPower(x1,y1,m1,x2,y2,m2,type)
+{
+	var d=(x1-x2)*(x1-x2);
+	d += (y1-y2)*(y1-y2);
+
+	var p=m1*m2/d;
+	var d2=Math.sqrt(d);
+	
+	var px=p*(x2-x1)/d;
+	var py=p*(y2-y1)/d;
+	if(type==true)
+	{
+		px *=-1;
+		py *=-1;
+	}
+	return [px,py];
+}
+
+function calcMove(c)
+{
+	if(c[0]<0 || c[0]>=1|| c[1]<0 || c[1]>1) return;
+
+	var p=[0,0];
+	for(var i=0;i<m_data.length;i++)
+	{
+		var ret=GetPower(c[0],c[1],c[5],m_data[i][0],m_data[i][1],m_data[i][3], c[4]==m_data[i][2]);
+		p[0] += ret[0];
+		p[1] += ret[1];
+	}
+	
+	c[2] += p[0]/10000;
+	c[3] += p[1]/10000;
+	
+	c[0] += c[2]/100;
+	c[1] += c[3]/100;
+	
+}
+
+function redraw()
+{
+	for(var i=0;i<c_data.length;i++)
+	{
+		calcMove(c_data[i]);
+	}
+	
+	
+	ctx.clearRect(0, 0, width,height);
+	for(var i=0;i<c_data.length;i++)
+	{
+		drawC(c_data[i]);
+	}
+	
+	for(var i=0;i<m_data.length;i++)
+	{
+		drawM(m_data[i]);
+	}
+		
+	setTimeout('redraw()', 100);
+}
+
+function mousedown()
+{
+	var e=window.event;
+	var x=e.offsetX;
+	var y=e.offsetY;
+
+	
+}
+
+function retry()
+{
+	tObj.style.display='none';
+}
+
+setTimeout('redraw()', 10);
+
+</script>
+
+</html>
